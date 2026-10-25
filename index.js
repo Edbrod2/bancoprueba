@@ -1,3 +1,4 @@
+require ('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 
@@ -6,11 +7,11 @@ app.use(express.json());
 
 // Conexión a PostgreSQL en Linux Mint
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'banco_db',
-  password: 'tu_password_local', // Cámbiala por tu contraseña de postgres
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD, // ✅ Lee la clave desde .env (ignorado por Git)
+  port: process.env.DB_PORT,
 });
 
 // ENDPOINT: Transferencia Bancaria Segura (Atomizada)
@@ -59,5 +60,5 @@ app.post('/api/transferir', async (req, res) => {
     client.release();
   }
 });
-
-app.listen(3000, () => console.log('Servidor bancario escuchando en puerto 3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor bancario escuchando en puerto ${PORT}`));
