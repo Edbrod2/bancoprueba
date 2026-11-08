@@ -18,7 +18,7 @@ const pool = new Pool({
 app.post('/api/transferir', async (req, res) => {
   const { cuentaOrigen, cuentaDestino, monto } = req.body;
   const client = await pool.connect();
-
+  
   try {
     // 1. Iniciar Transacción (Todo o Nada)
     await client.query('BEGIN');
@@ -27,11 +27,11 @@ app.post('/api/transferir', async (req, res) => {
     const resOrigen = await client.query(
       'UPDATE cuentas SET saldo = saldo - $1 WHERE numero_cuenta = $2 AND saldo >= $1 RETURNING *',
       [monto, cuentaOrigen]
-    );
+    )
 
     if (resOrigen.rowCount === 0) {
       throw new Error('Saldo insuficiente o cuenta de origen inválida');
-    }
+    };
 
     // 3. Acreditar saldo a destino
     const resDestino = await client.query(
@@ -43,7 +43,12 @@ app.post('/api/transferir', async (req, res) => {
       throw new Error('Cuenta de destino no encontrada');
     }
 
-    // 4. Confirmar la transacción
+    // 4. Registrar en la tabla de auditoría con tipo_operacion
+const resAuditoria = await client.query(
+  'INSERT INTO rtransacciones (cuenta_origen, cuenta_destino, monto, tipo_operacion) VALUES ($1, $2, $3, $4) RETURNING *',
+  [cuentaOrigen, cuentaDestino, monto, 'TRANSFERENCIA']
+);
+    // 5. Confirmar la transacción
     await client.query('COMMIT');
 
     res.status(200).json({
