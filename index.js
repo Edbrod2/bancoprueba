@@ -36,12 +36,16 @@ const validacionesTransferencia = [
 
 
 // ENDPOINT: Transferencia Bancaria Segura (Atomizada)
-app.post('/api/transferir', async (req, res) => {
+app.post('/api/transferir', validacionesTransferencia, async (req, res) => {
+  const errores = validationResult(req);
+  if (!errores.isEmpty()){
+    return res.status(400).json({errores: errores.array()});
+  }
   const { cuentaOrigen, cuentaDestino, monto } = req.body;
   const client = await pool.connect();
   
   try {
-    // 1. Iniciar Transacción (Todo o Nada)
+    // 1. Iniciar Transacción
     await client.query('BEGIN');
 
     // 2. Descontar saldo de origen
