@@ -1,6 +1,7 @@
 require ('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
+const{boddy, validationResult} = require('express-validator')
 
 const app = express();
 app.use(express.json());
@@ -13,6 +14,26 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD, // ✅ Lee la clave desde .env (ignorado por Git)
   port: process.env.DB_PORT,
 });
+
+/ Reglas de validación para la transferencia bancaria
+const validacionesTransferencia = [
+  body('cuentaOrigen')
+    .notEmpty().withMessage('La cuenta de origen es obligatoria')
+    .isString().withMessage('La cuenta de origen debe ser texto'),
+  body('cuentaDestino')
+    .notEmpty().withMessage('La cuenta de destino es obligatoria')
+    .isString().withMessage('La cuenta de destino debe ser texto')
+    .custom((value, { req }) => {
+      if (value === req.body.cuentaOrigen) {
+        throw new Error('No puedes realizar transferencias a la misma cuenta de origen');
+      }
+      return true;
+    }),
+  body('monto')
+    .notEmpty().withMessage('El monto es obligatorio')
+    .isFloat({ gt: 0 }).withMessage('El monto debe ser un número mayor a 0')
+];
+
 
 // ENDPOINT: Transferencia Bancaria Segura (Atomizada)
 app.post('/api/transferir', async (req, res) => {
