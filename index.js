@@ -15,7 +15,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-/ Reglas de validación para la transferencia bancaria
+// Reglas de validación para la transferencia bancaria
 const validacionesTransferencia = [
   body('cuentaOrigen')
     .notEmpty().withMessage('La cuenta de origen es obligatoria')
