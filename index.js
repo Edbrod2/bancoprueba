@@ -1,7 +1,7 @@
 require ('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
-const{boddy, validationResult} = require('express-validator')
+const{body, validationResult} = require('express-validator')
 
 const app = express();
 app.use(express.json());
